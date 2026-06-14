@@ -3,61 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Management System</title>
+<title>Student App System</title>
 
 <style>
 body{
-    font-family: Arial, sans-serif;
+    margin:0;
+    font-family:Arial;
     background:#f4f4f4;
-    margin:20px;
     transition:0.3s;
 }
 
 .container{
-    max-width:1200px;
+    max-width:1000px;
     margin:auto;
+    padding-bottom:90px;
 }
 
-h1{
-    text-align:center;
+/* SECTIONS */
+.section{
+    display:none;
+    padding:15px;
+    animation:fade 0.3s ease;
 }
 
+@keyframes fade{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* CARD */
 .card{
     background:white;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:15px;
     box-shadow:0 0 10px rgba(0,0,0,.1);
-    transition:0.3s;
 }
 
+/* INPUTS */
 input, select{
     width:100%;
-    padding:10px;
+    padding:12px;
     margin:5px 0;
-    box-sizing:border-box;
+    font-size:16px;
 }
 
+/* BUTTON */
 button{
-    padding:10px 15px;
-    cursor:pointer;
-    margin:5px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#333;
+    color:white;
+    width:100%;
+    margin:5px 0;
 }
 
+/* TABLE */
 table{
     width:100%;
     border-collapse:collapse;
+    display:block;
+    overflow-x:auto;
 }
 
 th, td{
     border:1px solid #ddd;
     padding:10px;
-    text-align:left;
 }
 
 th{
     background:#333;
     color:white;
+}
+
+/* BOTTOM NAV */
+.bottom-nav{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:white;
+    display:flex;
+    justify-content:space-around;
+    padding:10px 0;
+    box-shadow:0 -2px 10px rgba(0,0,0,0.1);
+}
+
+.bottom-nav button{
+    background:none;
+    border:none;
+    font-size:20px;
+    color:#333;
+}
+
+/* FLOAT BUTTON */
+.fab{
+    position:fixed;
+    bottom:80px;
+    right:20px;
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    background:#333;
+    color:white;
+    font-size:30px;
 }
 
 /* DARK MODE */
@@ -66,14 +115,14 @@ th{
     color:white;
 }
 
-.dark .card{
+.dark .card,
+.dark .id-card{
     background:#2d2d2d;
     color:white;
 }
 
 .dark table{
     background:#2d2d2d;
-    color:white;
 }
 
 .dark th{
@@ -84,7 +133,53 @@ th{
 .dark select{
     background:#444;
     color:white;
-    border:1px solid #666;
+}
+
+/* ID CARD */
+.id-card{
+    width:320px;
+    margin:auto;
+    background:white;
+    border:2px solid #333;
+    border-radius:15px;
+    padding:15px;
+    text-align:center;
+}
+
+.id-photo{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    background:#ddd;
+    margin:auto;
+    font-size:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.id-title{
+    font-weight:bold;
+    margin:10px 0;
+}
+
+.id-info{
+    text-align:left;
+    font-size:14px;
+    line-height:1.6;
+}
+
+/* PRINT */
+@media print{
+    body *{visibility:hidden;}
+    #profile, #profile *{visibility:visible;}
+    #profile{
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+    }
+    button{display:none;}
 }
 </style>
 </head>
@@ -93,261 +188,253 @@ th{
 
 <div class="container">
 
-<h1>Student Management System</h1>
+<h1 style="text-align:center;">📱 Student App</h1>
 
-<button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+<button onclick="toggleDark()">🌙 Dark Mode</button>
 
 <!-- DASHBOARD -->
+<div id="dashboard" class="section">
 <div class="card">
-<h2>Total Students: <span id="total">0</span></h2>
-<h3>Regular: <span id="regularCount">0</span></h3>
-<h3>Irregular: <span id="irregularCount">0</span></h3>
-<h3>With Illness: <span id="illnessCount">0</span></h3>
+<h2>Total: <span id="total">0</span></h2>
+<h3>Regular: <span id="regular">0</span></h3>
+<h3>Irregular: <span id="irregular">0</span></h3>
+<h3>Illness: <span id="illness">0</span></h3>
+</div>
 </div>
 
-<!-- ADD / EDIT FORM -->
+<!-- ADD -->
+<div id="add" class="section">
 <div class="card">
-<h2 id="formTitle">Add Student</h2>
 
-<input type="number" id="id" placeholder="Student ID">
-<input type="text" id="name" placeholder="Name">
-<input type="number" id="age" placeholder="Age">
-<input type="text" id="gender" placeholder="Gender">
-<input type="text" id="program" placeholder="Program (ALL CAPS)">
+<h2>Add Student</h2>
+
+<input id="id" placeholder="ID">
+<input id="name" placeholder="Name">
+<input id="age" placeholder="Age">
+<input id="gender" placeholder="Gender">
+<input id="program" placeholder="Program (ALL CAPS)">
 
 <select id="status">
-<option value="">Select Status</option>
 <option>Regular</option>
 <option>Irregular</option>
 </select>
 
-<input type="text" id="contact" placeholder="Contact Number">
-<input type="text" id="address" placeholder="Address">
+<input id="contact" placeholder="Contact">
+<input id="address" placeholder="Address">
 
 <select id="hasIllness">
-<option value="">Has Illness?</option>
 <option>Yes</option>
 <option>No</option>
 </select>
 
-<input type="text" id="illness" placeholder="Illness">
+<input id="illness" placeholder="Illness">
 
-<button onclick="saveStudent()">Save Student</button>
-<button onclick="clearForm()">Cancel</button>
+<button onclick="save()">Save</button>
+
+</div>
 </div>
 
-<!-- SEARCH -->
+<!-- LIST -->
+<div id="list" class="section">
+
 <div class="card">
-<h2>Search Student</h2>
-<input type="text" id="search" onkeyup="searchStudent()" placeholder="Search by ID or Name">
+<input id="search" onkeyup="search()" placeholder="Search student...">
 </div>
 
-<!-- SORT -->
-<div class="card">
-<button onclick="sortByName()">Sort By Name</button>
-<button onclick="sortByID()">Sort By ID</button>
-</div>
-
-<!-- TABLE -->
 <div class="card">
 <table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Name</th>
-<th>Age</th>
-<th>Gender</th>
-<th>Program</th>
-<th>Status</th>
-<th>Contact</th>
-<th>Address</th>
-<th>Illness</th>
-<th>Actions</th>
-</tr>
-</thead>
-
-<tbody id="studentTable"></tbody>
+<tbody id="table"></tbody>
 </table>
+
+<div id="mobile"></div>
 </div>
 
+</div>
+
+<!-- PROFILE (ID CARD) -->
+<div id="profile" class="section">
+
+<div class="card">
+
+<button onclick="show('list')">⬅ Back</button>
+
+<div id="profileContent"></div>
+
+<button onclick="window.print()">🖨 Print Student Information</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- FLOAT -->
+<button class="fab" onclick="show('add')">+</button>
+
+<!-- NAV -->
+<div class="bottom-nav">
+<button onclick="show('dashboard')">🏠</button>
+<button onclick="show('add')">➕</button>
+<button onclick="show('list')">📋</button>
 </div>
 
 <script>
 
 let students = JSON.parse(localStorage.getItem("students")) || [];
-let editIndex = -1;
 
-function saveData(){
-    localStorage.setItem("students", JSON.stringify(students));
+function show(sec){
+    document.querySelectorAll(".section").forEach(s=>s.style.display="none");
+    document.getElementById(sec).style.display="block";
 }
 
-function toggleDarkMode(){
+function toggleDark(){
     document.body.classList.toggle("dark");
 }
 
-/* DASHBOARD */
-function updateTotal(){
+/* SAVE */
+function save(){
 
-    document.getElementById("total").innerText = students.length;
+let id=document.getElementById("id").value;
+let name=document.getElementById("name").value;
+let age=document.getElementById("age").value;
+let gender=document.getElementById("gender").value;
+let program=document.getElementById("program").value;
+let status=document.getElementById("status").value;
+let contact=document.getElementById("contact").value;
+let address=document.getElementById("address").value;
+let has=document.getElementById("hasIllness").value;
+let illness=document.getElementById("illness").value;
 
-    let regular = students.filter(s => s.status === "Regular").length;
-    let irregular = students.filter(s => s.status === "Irregular").length;
-    let illness = students.filter(s => s.hasIllness === "Yes").length;
-
-    document.getElementById("regularCount").innerText = regular;
-    document.getElementById("irregularCount").innerText = irregular;
-    document.getElementById("illnessCount").innerText = illness;
+if(name.charAt(0)!==name.charAt(0).toUpperCase()){
+alert("Name must CAPITAL");
+return;
 }
 
-/* SAVE OR UPDATE */
-function saveStudent(){
+if(program!==program.toUpperCase()){
+alert("Program must ALL CAPS");
+return;
+}
 
-    let id = document.getElementById("id").value;
-    let name = document.getElementById("name").value;
-    let age = document.getElementById("age").value;
-    let gender = document.getElementById("gender").value;
-    let program = document.getElementById("program").value;
-    let status = document.getElementById("status").value;
-    let contact = document.getElementById("contact").value;
-    let address = document.getElementById("address").value;
-    let hasIllness = document.getElementById("hasIllness").value;
-    let illness = document.getElementById("illness").value;
+if(has==="No") illness="None";
 
-    if(!id || !name){
-        alert("ID and Name required!");
-        return;
-    }
+students.push({id,name,age,gender,program,status,contact,address,has,illness});
 
-    if(name.charAt(0) !== name.charAt(0).toUpperCase()){
-        alert("Name must start with CAPITAL letter!");
-        return;
-    }
+localStorage.setItem("students",JSON.stringify(students));
 
-    if(program !== program.toUpperCase()){
-        alert("Program must be ALL CAPS!");
-        return;
-    }
-
-    if(hasIllness === "No"){
-        illness = "None";
-    }
-
-    let data = {
-        id, name, age, gender,
-        program, status,
-        contact, address,
-        hasIllness, illness
-    };
-
-    if(editIndex === -1){
-        students.push(data);
-    } else {
-        students[editIndex] = data;
-        editIndex = -1;
-        document.getElementById("formTitle").innerText = "Add Student";
-    }
-
-    saveData();
-    displayStudents();
-    clearForm();
+display();
+show("list");
 }
 
 /* DISPLAY */
-function displayStudents(list = students){
+function display(){
 
-    let table = document.getElementById("studentTable");
-    table.innerHTML = "";
+let table=document.getElementById("table");
+let mobile=document.getElementById("mobile");
 
-    list.forEach((student,index)=>{
+table.innerHTML="";
+mobile.innerHTML="";
 
-        table.innerHTML += `
-        <tr>
-            <td>${student.id}</td>
-            <td>${student.name}</td>
-            <td>${student.age}</td>
-            <td>${student.gender}</td>
-            <td>${student.program}</td>
-            <td>${student.status}</td>
-            <td>${student.contact}</td>
-            <td>${student.address}</td>
-            <td>${student.illness}</td>
-            <td>
-                <button onclick="editStudent(${index})">Edit</button>
-                <button onclick="deleteStudent(${index})">Delete</button>
-            </td>
-        </tr>
-        `;
-    });
+students.forEach((s,i)=>{
 
-    updateTotal();
+table.innerHTML+=`
+<tr>
+<td>${s.id}</td>
+<td>${s.name}</td>
+<td>${s.program}</td>
+<td><button onclick="viewProfile(${i})">View</button></td>
+<td><button onclick="del(${i})">Del</button></td>
+</tr>`;
+
+mobile.innerHTML+=`
+<div class="card">
+<b>${s.name}</b><br>
+${s.program}<br>
+<button onclick="viewProfile(${i})">View</button>
+<button onclick="del(${i})">Delete</button>
+</div>`;
+});
+
+update();
 }
 
-/* EDIT (NO PROMPT) */
-function editStudent(index){
+/* PROFILE */
+function viewProfile(i){
 
-    let s = students[index];
+let s = students[i];
 
-    document.getElementById("id").value = s.id;
-    document.getElementById("name").value = s.name;
-    document.getElementById("age").value = s.age;
-    document.getElementById("gender").value = s.gender;
-    document.getElementById("program").value = s.program;
-    document.getElementById("status").value = s.status;
-    document.getElementById("contact").value = s.contact;
-    document.getElementById("address").value = s.address;
-    document.getElementById("hasIllness").value = s.hasIllness;
-    document.getElementById("illness").value = s.illness;
+document.getElementById("profileContent").innerHTML=`
+<div class="id-card">
 
-    editIndex = index;
+<div class="id-photo">👤</div>
 
-    document.getElementById("formTitle").innerText = "Edit Student";
-}
+<div class="id-title">STUDENT INFORMATION</div>
 
-/* CLEAR FORM */
-function clearForm(){
-    document.querySelectorAll("input").forEach(i => i.value = "");
-    document.getElementById("illness").value = "";
-    editIndex = -1;
-    document.getElementById("formTitle").innerText = "Add Student";
+<div class="id-info">
+<b>Name:</b> ${s.name}<br>
+<b>ID:</b> ${s.id}<br>
+<b>Age:</b> ${s.age}<br>
+<b>Gender:</b> ${s.gender}<br>
+<b>Program:</b> ${s.program}<br>
+<b>Status:</b> ${s.status}<br>
+<b>Contact:</b> ${s.contact}<br>
+<b>Address:</b> ${s.address}<br>
+<b>Illness:</b> ${s.illness}<br>
+</div>
+
+</div>
+`;
+
+show("profile");
 }
 
 /* DELETE */
-function deleteStudent(index){
-
-    if(confirm("Delete this student?")){
-        students.splice(index,1);
-        saveData();
-        displayStudents();
-    }
+function del(i){
+students.splice(i,1);
+localStorage.setItem("students",JSON.stringify(students));
+display();
 }
 
 /* SEARCH */
-function searchStudent(){
-
-    let key = document.getElementById("search").value.toLowerCase();
-
-    let result = students.filter(s =>
-        s.name.toLowerCase().includes(key) ||
-        s.id.toString().includes(key)
-    );
-
-    displayStudents(result);
+function search(){
+let key=document.getElementById("search").value.toLowerCase();
+let f=students.filter(s=>s.name.toLowerCase().includes(key));
+displayFiltered(f);
 }
 
-/* SORT */
-function sortByName(){
-    students.sort((a,b)=>a.name.localeCompare(b.name));
-    saveData();
-    displayStudents();
+function displayFiltered(list){
+
+let table=document.getElementById("table");
+let mobile=document.getElementById("mobile");
+
+table.innerHTML="";
+mobile.innerHTML="";
+
+list.forEach((s,i)=>{
+
+table.innerHTML+=`
+<tr>
+<td>${s.id}</td>
+<td>${s.name}</td>
+<td>${s.program}</td>
+<td><button onclick="viewProfile(${i})">View</button></td>
+<td><button onclick="del(${i})">Del</button></td>
+</tr>`;
+});
 }
 
-function sortByID(){
-    students.sort((a,b)=>Number(a.id)-Number(b.id));
-    saveData();
-    displayStudents();
+/* DASHBOARD */
+function update(){
+
+document.getElementById("total").innerText=students.length;
+document.getElementById("regular").innerText=students.filter(s=>s.status=="Regular").length;
+document.getElementById("irregular").innerText=students.filter(s=>s.status=="Irregular").length;
+document.getElementById("illness").innerText=students.filter(s=>s.has=="Yes").length;
+
 }
 
-displayStudents();
+/* INIT */
+show("dashboard");
+display();
 
 </script>
 
