@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Management System</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+    margin:20px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 0 10px rgba(0,0,0,.1);
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    box-sizing:border-box;
+}
+
+button{
+    padding:10px 15px;
+    cursor:pointer;
+    margin:5px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:left;
+}
+
+th{
+    background:#333;
+    color:white;
+}
+
+.total{
+    font-size:20px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Student Management System</h1>
+
+<div class="card">
+<h2>Total Students: <span id="total">0</span></h2>
+</div>
+
+<div class="card">
+<h2>Add Student</h2>
+
+<input type="number" id="id" placeholder="Student ID">
+
+<input type="text" id="name" placeholder="Name">
+
+<input type="number" id="age" placeholder="Age">
+
+<input type="text" id="gender" placeholder="Gender">
+
+<input type="text" id="program" placeholder="Program (ALL CAPS)">
+
+<select id="status">
+<option value="">Select Status</option>
+<option>Regular</option>
+<option>Irregular</option>
+</select>
+
+<input type="text" id="contact" placeholder="Contact Number">
+
+<input type="text" id="address" placeholder="Address">
+
+<select id="hasIllness">
+<option value="">Has Illness?</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+
+<input type="text" id="illness" placeholder="Illness">
+
+<button onclick="addStudent()">Add Student</button>
+
+</div>
+
+<div class="card">
+<h2>Search Student</h2>
+
+<input type="text" id="search" placeholder="Enter ID or Name">
+
+<button onclick="searchStudent()">Search</button>
+<button onclick="displayStudents()">Show All</button>
+</div>
+
+<div class="card">
+<button onclick="sortByName()">Sort By Name</button>
+<button onclick="sortByID()">Sort By ID</button>
+</div>
+
+<div class="card">
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Age</th>
+<th>Gender</th>
+<th>Program</th>
+<th>Status</th>
+<th>Contact</th>
+<th>Address</th>
+<th>Illness</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="studentTable"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+let students = JSON.parse(localStorage.getItem("students")) || [];
+
+function saveData(){
+    localStorage.setItem("students", JSON.stringify(students));
+}
+
+function updateTotal(){
+    document.getElementById("total").innerText = students.length;
+}
+
+function addStudent(){
+
+    let id = document.getElementById("id").value;
+    let name = document.getElementById("name").value;
+    let age = document.getElementById("age").value;
+    let gender = document.getElementById("gender").value;
+    let program = document.getElementById("program").value;
+    let status = document.getElementById("status").value;
+    let contact = document.getElementById("contact").value;
+    let address = document.getElementById("address").value;
+    let hasIllness = document.getElementById("hasIllness").value;
+    let illness = document.getElementById("illness").value;
+
+    if(students.some(s => s.id == id)){
+        alert("ID already exists!");
+        return;
+    }
+
+    if(name.charAt(0) !== name.charAt(0).toUpperCase()){
+        alert("First letter of name must be CAPITAL.");
+        return;
+    }
+
+    if(program !== program.toUpperCase()){
+        alert("Program must be ALL CAPS.");
+        return;
+    }
+
+    if(hasIllness === "No"){
+        illness = "None";
+    }
+
+    students.push({
+        id,
+        name,
+        age,
+        gender,
+        program,
+        status,
+        contact,
+        address,
+        hasIllness,
+        illness
+    });
+
+    saveData();
+    displayStudents();
+
+    document.querySelectorAll("input").forEach(i=>i.value="");
+}
+
+function displayStudents(list = students){
+
+    let table = document.getElementById("studentTable");
+
+    table.innerHTML = "";
+
+    list.forEach((student,index)=>{
+
+        table.innerHTML += `
+        <tr>
+            <td>${student.id}</td>
+            <td>${student.name}</td>
+            <td>${student.age}</td>
+            <td>${student.gender}</td>
+            <td>${student.program}</td>
+            <td>${student.status}</td>
+            <td>${student.contact}</td>
+            <td>${student.address}</td>
+            <td>${student.illness}</td>
+
+            <td>
+                <button onclick="updateStudent(${index})">Edit</button>
+                <button onclick="deleteStudent(${index})">Delete</button>
+            </td>
+        </tr>
+        `;
+    });
+
+    updateTotal();
+}
+
+function searchStudent(){
+
+    let keyword =
+    document.getElementById("search")
+    .value
+    .toLowerCase();
+
+    let result = students.filter(student =>
+        student.name.toLowerCase().includes(keyword) ||
+        student.id.toString() === keyword
+    );
+
+    displayStudents(result);
+}
+
+function deleteStudent(index){
+
+    if(confirm("Delete this student?")){
+
+        students.splice(index,1);
+
+        saveData();
+
+        displayStudents();
+    }
+}
+
+function updateStudent(index){
+
+    let student = students[index];
+
+    let newName =
+    prompt("Enter New Name", student.name);
+
+    if(newName){
+
+        student.name = newName;
+
+        saveData();
+
+        displayStudents();
+    }
+}
+
+function sortByName(){
+
+    students.sort((a,b)=>
+        a.name.localeCompare(b.name)
+    );
+
+    saveData();
+
+    displayStudents();
+}
+
+function sortByID(){
+
+    students.sort((a,b)=>
+        Number(a.id)-Number(b.id)
+    );
+
+    saveData();
+
+    displayStudents();
+}
+
+displayStudents();
+
+</script>
+
+</body>
+</html>
