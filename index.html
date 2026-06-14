@@ -10,6 +10,7 @@ body{
     font-family: Arial, sans-serif;
     background:#f4f4f4;
     margin:20px;
+    transition:0.3s;
 }
 
 .container{
@@ -27,6 +28,7 @@ h1{
     border-radius:10px;
     margin-bottom:20px;
     box-shadow:0 0 10px rgba(0,0,0,.1);
+    transition:0.3s;
 }
 
 input, select{
@@ -58,9 +60,31 @@ th{
     color:white;
 }
 
-.total{
-    font-size:20px;
-    font-weight:bold;
+/* DARK MODE */
+.dark{
+    background:#1e1e1e;
+    color:white;
+}
+
+.dark .card{
+    background:#2d2d2d;
+    color:white;
+}
+
+.dark table{
+    background:#2d2d2d;
+    color:white;
+}
+
+.dark th{
+    background:#000;
+}
+
+.dark input,
+.dark select{
+    background:#444;
+    color:white;
+    border:1px solid #666;
 }
 </style>
 </head>
@@ -71,21 +95,24 @@ th{
 
 <h1>Student Management System</h1>
 
+<button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+
+<!-- DASHBOARD -->
 <div class="card">
 <h2>Total Students: <span id="total">0</span></h2>
+<h3>Regular: <span id="regularCount">0</span></h3>
+<h3>Irregular: <span id="irregularCount">0</span></h3>
+<h3>With Illness: <span id="illnessCount">0</span></h3>
 </div>
 
+<!-- ADD / EDIT FORM -->
 <div class="card">
-<h2>Add Student</h2>
+<h2 id="formTitle">Add Student</h2>
 
 <input type="number" id="id" placeholder="Student ID">
-
 <input type="text" id="name" placeholder="Name">
-
 <input type="number" id="age" placeholder="Age">
-
 <input type="text" id="gender" placeholder="Gender">
-
 <input type="text" id="program" placeholder="Program (ALL CAPS)">
 
 <select id="status">
@@ -95,7 +122,6 @@ th{
 </select>
 
 <input type="text" id="contact" placeholder="Contact Number">
-
 <input type="text" id="address" placeholder="Address">
 
 <select id="hasIllness">
@@ -106,28 +132,25 @@ th{
 
 <input type="text" id="illness" placeholder="Illness">
 
-<button onclick="addStudent()">Add Student</button>
-
+<button onclick="saveStudent()">Save Student</button>
+<button onclick="clearForm()">Cancel</button>
 </div>
 
+<!-- SEARCH -->
 <div class="card">
 <h2>Search Student</h2>
-
-<input type="text" id="search" placeholder="Enter ID or Name">
-
-<button onclick="searchStudent()">Search</button>
-<button onclick="displayStudents()">Show All</button>
+<input type="text" id="search" onkeyup="searchStudent()" placeholder="Search by ID or Name">
 </div>
 
+<!-- SORT -->
 <div class="card">
 <button onclick="sortByName()">Sort By Name</button>
 <button onclick="sortByID()">Sort By ID</button>
 </div>
 
+<!-- TABLE -->
 <div class="card">
-
 <table>
-
 <thead>
 <tr>
 <th>ID</th>
@@ -144,9 +167,7 @@ th{
 </thead>
 
 <tbody id="studentTable"></tbody>
-
 </table>
-
 </div>
 
 </div>
@@ -154,16 +175,32 @@ th{
 <script>
 
 let students = JSON.parse(localStorage.getItem("students")) || [];
+let editIndex = -1;
 
 function saveData(){
     localStorage.setItem("students", JSON.stringify(students));
 }
 
-function updateTotal(){
-    document.getElementById("total").innerText = students.length;
+function toggleDarkMode(){
+    document.body.classList.toggle("dark");
 }
 
-function addStudent(){
+/* DASHBOARD */
+function updateTotal(){
+
+    document.getElementById("total").innerText = students.length;
+
+    let regular = students.filter(s => s.status === "Regular").length;
+    let irregular = students.filter(s => s.status === "Irregular").length;
+    let illness = students.filter(s => s.hasIllness === "Yes").length;
+
+    document.getElementById("regularCount").innerText = regular;
+    document.getElementById("irregularCount").innerText = irregular;
+    document.getElementById("illnessCount").innerText = illness;
+}
+
+/* SAVE OR UPDATE */
+function saveStudent(){
 
     let id = document.getElementById("id").value;
     let name = document.getElementById("name").value;
@@ -176,18 +213,18 @@ function addStudent(){
     let hasIllness = document.getElementById("hasIllness").value;
     let illness = document.getElementById("illness").value;
 
-    if(students.some(s => s.id == id)){
-        alert("ID already exists!");
+    if(!id || !name){
+        alert("ID and Name required!");
         return;
     }
 
     if(name.charAt(0) !== name.charAt(0).toUpperCase()){
-        alert("First letter of name must be CAPITAL.");
+        alert("Name must start with CAPITAL letter!");
         return;
     }
 
     if(program !== program.toUpperCase()){
-        alert("Program must be ALL CAPS.");
+        alert("Program must be ALL CAPS!");
         return;
     }
 
@@ -195,29 +232,30 @@ function addStudent(){
         illness = "None";
     }
 
-    students.push({
-        id,
-        name,
-        age,
-        gender,
-        program,
-        status,
-        contact,
-        address,
-        hasIllness,
-        illness
-    });
+    let data = {
+        id, name, age, gender,
+        program, status,
+        contact, address,
+        hasIllness, illness
+    };
+
+    if(editIndex === -1){
+        students.push(data);
+    } else {
+        students[editIndex] = data;
+        editIndex = -1;
+        document.getElementById("formTitle").innerText = "Add Student";
+    }
 
     saveData();
     displayStudents();
-
-    document.querySelectorAll("input").forEach(i=>i.value="");
+    clearForm();
 }
 
+/* DISPLAY */
 function displayStudents(list = students){
 
     let table = document.getElementById("studentTable");
-
     table.innerHTML = "";
 
     list.forEach((student,index)=>{
@@ -233,9 +271,8 @@ function displayStudents(list = students){
             <td>${student.contact}</td>
             <td>${student.address}</td>
             <td>${student.illness}</td>
-
             <td>
-                <button onclick="updateStudent(${index})">Edit</button>
+                <button onclick="editStudent(${index})">Edit</button>
                 <button onclick="deleteStudent(${index})">Delete</button>
             </td>
         </tr>
@@ -245,69 +282,68 @@ function displayStudents(list = students){
     updateTotal();
 }
 
+/* EDIT (NO PROMPT) */
+function editStudent(index){
+
+    let s = students[index];
+
+    document.getElementById("id").value = s.id;
+    document.getElementById("name").value = s.name;
+    document.getElementById("age").value = s.age;
+    document.getElementById("gender").value = s.gender;
+    document.getElementById("program").value = s.program;
+    document.getElementById("status").value = s.status;
+    document.getElementById("contact").value = s.contact;
+    document.getElementById("address").value = s.address;
+    document.getElementById("hasIllness").value = s.hasIllness;
+    document.getElementById("illness").value = s.illness;
+
+    editIndex = index;
+
+    document.getElementById("formTitle").innerText = "Edit Student";
+}
+
+/* CLEAR FORM */
+function clearForm(){
+    document.querySelectorAll("input").forEach(i => i.value = "");
+    document.getElementById("illness").value = "";
+    editIndex = -1;
+    document.getElementById("formTitle").innerText = "Add Student";
+}
+
+/* DELETE */
+function deleteStudent(index){
+
+    if(confirm("Delete this student?")){
+        students.splice(index,1);
+        saveData();
+        displayStudents();
+    }
+}
+
+/* SEARCH */
 function searchStudent(){
 
-    let keyword =
-    document.getElementById("search")
-    .value
-    .toLowerCase();
+    let key = document.getElementById("search").value.toLowerCase();
 
-    let result = students.filter(student =>
-        student.name.toLowerCase().includes(keyword) ||
-        student.id.toString() === keyword
+    let result = students.filter(s =>
+        s.name.toLowerCase().includes(key) ||
+        s.id.toString().includes(key)
     );
 
     displayStudents(result);
 }
 
-function deleteStudent(index){
-
-    if(confirm("Delete this student?")){
-
-        students.splice(index,1);
-
-        saveData();
-
-        displayStudents();
-    }
-}
-
-function updateStudent(index){
-
-    let student = students[index];
-
-    let newName =
-    prompt("Enter New Name", student.name);
-
-    if(newName){
-
-        student.name = newName;
-
-        saveData();
-
-        displayStudents();
-    }
-}
-
+/* SORT */
 function sortByName(){
-
-    students.sort((a,b)=>
-        a.name.localeCompare(b.name)
-    );
-
+    students.sort((a,b)=>a.name.localeCompare(b.name));
     saveData();
-
     displayStudents();
 }
 
 function sortByID(){
-
-    students.sort((a,b)=>
-        Number(a.id)-Number(b.id)
-    );
-
+    students.sort((a,b)=>Number(a.id)-Number(b.id));
     saveData();
-
     displayStudents();
 }
 
